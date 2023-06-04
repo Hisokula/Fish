@@ -2,8 +2,8 @@
 
 int main()
 {
-    std::cout << "Fosh";
-    std::cout << "Moot";
-    std::cout << "Moot";
-    std::cout << "MaRiMo";
+    std::cout << "Meet";
+    std::cout << "Maat";
+    std::cout << "Myyt";
+    std::cout << "Morimot";
 }
