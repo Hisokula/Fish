@@ -3,9 +3,9 @@
 
 int main()
 {
-    std::cout << "Fosh";
-    std::cout << "Moot";
-    std::cout << "Moot";
-    std::cout << "It's Maru's branch. Go away.";
+	std::cout << "Fish";
+	std::cout << "Fesh";
+	std::cout << "Fash";
+	std::cout << "Fysh";
 }
 
