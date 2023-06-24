@@ -120,7 +120,7 @@ public:
     }
 };
 
-class PersonalTask : public Task
+class PersonalTask : public Task // ХХХсделать дефолтный конструкторХХХ
 {
 private:
 public:
@@ -152,7 +152,7 @@ public:
     }
 };
 
-class RegularTask : public Task
+class RegularTask : public Task // ХХХсделать дефолтный конструкторХХХ
 {
 private:
     int m_frequency;
