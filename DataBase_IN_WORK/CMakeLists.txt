@@ -14,4 +14,4 @@ include_directories("ext/")
 
 add_executable("${PROJECT_NAME}" main.cpp ext/sqlite3/sqlite3.c)
 
-file(COPY real_my_data.db DESTINATION "/")								
+file(COPY last_session.txt DESTINATION "/")								

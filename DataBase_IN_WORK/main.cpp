@@ -549,7 +549,7 @@ void DeletePersTask(std::string task_name, sqlite3* database, char* zErrMsg, int
 }
 
 
-void Factory(TaskType tt, std::vector<Task>& kuda, std::vector<std::string>& otkuda, std::vector<int>& otkudadop) //системная ф
+void Factory(TaskType tt, std::vector<Task>& kuda, std::vector<std::string>& otkuda, std::vector<int>& otkudadop) //фабрика объектов
 {
     PersonalTask temp_pers("sus");
     RegularTask temp_reg("amogass", 1);
@@ -583,7 +583,7 @@ void Factory(TaskType tt, std::vector<Task>& kuda, std::vector<std::string>& otk
 }
 
 
-void CountUp(int cycles, sqlite3* database, char* zErrMsg, int rc)
+void CountUp(int cycles, sqlite3* database, char* zErrMsg, int rc) // прибавляет единичку к счётчикам
 {
     std::string str = "UPDATE regular_tasks SET counter = counter + " + std::to_string(cycles);
     const char* req = const_cast<char*>(str.c_str());
@@ -606,7 +606,7 @@ void CountUp(int cycles, sqlite3* database, char* zErrMsg, int rc)
     }
 }
 
-void Checker(sqlite3* db, char* zErrMsg, int rc)
+void Checker(sqlite3* db, char* zErrMsg, int rc) //зануляет счётчики, превысившие свою частоту
 {
     const char* query = "UPDATE regular_tasks SET counter = 0 WHERE counter >= frequency";
     sqlite3_stmt* stmt;
@@ -649,19 +649,113 @@ void Checker(sqlite3* db, char* zErrMsg, int rc)
 }
 
 
-void Edit(std::vector<Task>& origin, std::string what_to_edit, TaskType what_type) //from Task-Vector
+/*void Edit(std::vector<Task>& origin, std::string what_to_edit, TaskType what_type) //from Task-Vector
+{
+    PersonalTask temp_pers("sus");
+    RegularTask temp_reg("amogass", 1);
+
+    for (int i = 0; i < origin.size(); i++)
+    {
+        if (origin[i].GetName() == what_to_edit)
+        {
+            switch (what_type)
+            {
+                case(TaskType::REGULAR)
+                {
+                    //std::cout <<
+                }
+            }
+        }
+    }
+}*/
+
+
+
+
+/*void Delete(std::vector<Task>& origin) //from Task-Vector
 {
 
-}
+}*/
 
-void Delete(std::vector<Task>& origin) //from Task-Vector
+
+
+// TIME SECTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+int TimeUpdate()  //сверяет дату последней сессии  и перезаписывает её (возвращает сколько дней прошло с последней сессии)
 {
+    // txt и немного 
+    std::ifstream in("last_session.txt", std::ios::in);
+    std::string last_date;
+    std::string today_date;
+    in >> last_date;
+    std::string tempy = "";
 
+    tempy += last_date[0];
+    tempy += last_date[1];
+    int tod_day = atoi(tempy.c_str());
+
+    tempy = "";
+    tempy += last_date[3];
+    tempy += last_date[4];
+    int tod_mon = atoi(tempy.c_str());
+
+    tempy = "";
+    tempy += last_date[6];
+    tempy += last_date[7];
+    tempy += last_date[8];
+    tempy += last_date[9];
+    int tod_ye = atoi(tempy.c_str());
+
+
+    tm last_ses = { 0,0,0, tod_day,tod_mon,tod_ye - 1900 };
+
+    time_t now = time(0);
+    tm* ltm = localtime(&now);
+
+    tm now_ses = { 0, 0, 0, ltm->tm_mday, ltm->tm_mon + 1,ltm->tm_year };
+    std::time_t start_time = std::mktime(&last_ses);
+    std::time_t end_time = std::mktime(&now_ses);
+
+    double seconds = std::difftime(end_time, start_time);
+    int days = seconds / (60 * 60 * 24);
+
+    tempy = "";
+    tempy += std::to_string(ltm->tm_mday);
+    tempy += "/";
+    tempy += std::to_string(ltm->tm_mon + 1);
+    tempy += "/";
+    tempy += std::to_string(ltm->tm_year + 1900);
+
+    std::ofstream out_t("last_session.txt", std::ios::out);
+    out_t << tempy;
+    return days;
 }
+
+
+void CleanUp_Pers(int day_dif, sqlite3* database, char* zErrMsg, int rc)   // очистка от персоналов, оставшихся со вчера)
+{
+    if (day_dif != 0)
+    {
+        int y = tasks_pers.size();
+        for (int i = 0; i < y; i++)
+        {
+            DeletePersTask(tasks_pers[0], database, zErrMsg, rc);
+        }
+    }
+}
+
+
+
 
 
 int main(int argc, char* argv[])
 {
+    std::vector<RegularTask> session_reg;
+    std::vector<PersonalTask> session_pers;
+    int day_dif;
+    std::string comand;
+    char choose;
+
 
     sqlite3* database;
     char* ErrorMesg = 0;
@@ -671,7 +765,10 @@ int main(int argc, char* argv[])
     db_open(database, recall_code);
     tab_set_up(database, ErrorMesg, recall_code);
 
-    //Some objects
+    std::cout << "WELL CUM BRO";
+    bool key = true;
+
+    ////////////////////
     RegularTask task1("Watch_One_Piece", 1);
     RegularTask task2("Watch_JoJo", 1);
     RegularTask task3("Watch_J", 2);
@@ -696,6 +793,158 @@ int main(int argc, char* argv[])
     ptas1.AddToBase(recall_code, database, ErrorMesg);
     ptas2.AddToBase(recall_code, database, ErrorMesg);
     ptas3.AddToBase(recall_code, database, ErrorMesg);
+    //////////////////////
+
+    while (key == true)
+    {
+        day_dif = TimeUpdate();
+        if (day_dif != 0) { CleanUp_Pers(1, database, ErrorMesg, recall_code); }
+        for (int i = 0; i < day_dif + 1; i++)
+        {
+            CountUp(1, database, ErrorMesg, recall_code);
+            Checker(database, ErrorMesg, recall_code);
+        }
+
+        std::cout << "Варианты действия: A)Взаимодейтвия с единоразовыми делами.  B)Взаимодействи с постоянными делами." << std::endl;
+        std::cin >> choose;
+
+        if (choose == 'A')
+        {
+            std::cout << "Варианты действия: A)Добавить объект.  B)Удалить объект.  C)Изменить объект" << std::endl;
+            std::cin >> choose;
+            switch (choose)
+            {
+            case('A'):
+            {
+                std::cout << "Введите название дела:" << std::endl;
+                std::cin >> comand;
+                PersonalTask temp(comand);
+                temp.AddToBase(recall_code, database, ErrorMesg);
+                break;
+            }
+
+            }
+        }
+
+
+
+
+
+
+        if (choose == 'B')
+        {
+            std::cout << "Варианты действия: A)Добавить объект.  B)Удалить объект.  C)Изменить объект" << std::endl;
+            std::cin >> choose;
+        }
+
+
+
+        // пользователь добавляет/делитает/меняет объекты
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //если пользователь захотел выйти - меняет флаг и составляет конечный список
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //Some objects
+
 
 
 
@@ -707,7 +956,7 @@ int main(int argc, char* argv[])
     FiltAndFill_pers(database, ErrorMesg, recall_code);
     //
 
-    CountUp(1, database, ErrorMesg, recall_code);
+
 
     std::vector<std::string> tasks_all;
 
@@ -721,14 +970,21 @@ int main(int argc, char* argv[])
     }
 
 
+
     for (int i = 0; i < tasks_all.size(); i++)
     {
         std::cout << "YO: " << tasks_all[i] << std::endl;
     }
-    //
+
+
     Factory(TaskType::REGULAR, task_vec_for_all, tasks_all, tasks_reg_freq_all);
 
     Factory(TaskType::PERSONAL, task_vec_for_all, tasks_all, tasks_reg_freq_all);
+
+    //Edit(task_vec_for_all, "catzzz", TaskType::REGULAR);
+
+
+
 
     //std::cerr << "FIRST DEL:" << task_vec_for_all[1].GetName() << std::endl;
     //DeleteRegTask(task_vec_for_all[1].GetName(), database, ErrorMesg, recall_code);
@@ -746,28 +1002,12 @@ int main(int argc, char* argv[])
 
 
 
-    // txt и немного 
-    std::ifstream in("last_session.txt", std::ios::in);
-    std::ofstream out("today_list.txt", std::ios::out);
 
-    std::string last_date;
-    std::string today_date;
 
-    in >> last_date;
 
-    /*if (last_date != today_date)
-    {
-        for (int i = 0; i < tasks_pers.size(); i++)
-        {
-            DeletePersTask()
-        }
-    }*/
 
-   
 
-    Checker(database, ErrorMesg, recall_code);
-
-    for (int j = 0; j < tasks_reg_today.size(); j++)
+    /*for (int j = 0; j < tasks_reg_today.size(); j++)
     {
         out << tasks_reg_today[j];
         out << std::endl;
@@ -777,7 +1017,9 @@ int main(int argc, char* argv[])
     {
         out << tasks_pers[j];
         out << std::endl;
-    }
+    }*/
+
+
 
 
     sqlite3_close(database);
