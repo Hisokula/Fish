@@ -1021,10 +1021,7 @@ int main(int argc, char* argv[])
         out << std::endl;
     }
 
-    //std::cout << "\033[47m";
-    //std::cout << "\033[30m";
     std::cout << BART << std::endl;
-    //std::cout << "\033[0m";
     std::cout << std::endl;
 
     
